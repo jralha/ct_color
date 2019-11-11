@@ -22,8 +22,8 @@ def load_crop(path,shape):
         img = img[:,:,:-1]
     return img
 
-foto = load_crop('ct_color\\reg_foto.png',(0,0,96,800))
-ct = load_crop('ct_color\\Tomografia_Cx6_T2.PNG',(0,0,96,800))
+foto = load_crop('ct_color\\output0\\reg_foto.png',(0,0,96,800))
+ct = load_crop('ct_color\\dados0\\Tomografia_Cx6_T2.PNG',(0,0,96,800))
 
 height=foto.shape[0]
 width=foto.shape[1]
