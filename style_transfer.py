@@ -12,15 +12,14 @@ from skimage.color import rgb2lab, lab2rgb
 #######################################################################
 def load_input_image(path):
     img = Image.open(path)
-    img = np.array(img, dtype=float)
+    img = np.float32(np.array(img))
     img = img[:,:,:3]
-    img = rgb2lab(1.0/255*img)[:,:,:3]
-    img /= 128
-    
- 
+    img = img / 255
+    # img = rgb2lab(1.0/255*img)[:,:,:3]
+    # img /= 128
 
-    vggsize=(224,224)
-    img = tf.image.resize(img, vggsize)
+    # vggsize=(224,224)
+    # img = tf.image.resize(img, vggsize)
     img = img[tf.newaxis, :]
     return img
 
@@ -29,7 +28,6 @@ foto = 'ct_color\\output0\\reg_foto.png'
 ct = 'ct_color\\dados0\\Tomografia_Cx6_T2.PNG'
 vgg = tf.keras.applications.vgg19.VGG19(include_top=False)
 
-cropping=(0,380,96,630)
 content_image = load_input_image(ct)
 style_image = load_input_image(foto)
 original_size = tf.cast(tf.shape(tf.image.convert_image_dtype(tf.image.decode_image(tf.io.read_file(ct), channels=3), tf.float32))[:-1], tf.float32)
@@ -97,7 +95,7 @@ class StyleContentModel(tf.keras.models.Model):
                     for style_name, value
                     in zip(self.style_layers, style_outputs)}
     
-      return {'content':content_dict, 'style':style_dict}
+        return {'content':content_dict, 'style':style_dict}
 
 extractor = StyleContentModel(style_layers, content_layers)
 
@@ -147,39 +145,33 @@ def train_step(image):
     opt.apply_gradients([(grad, image)])
     image.assign(clip_0_1(image))
 
-
+#%% Train
+ctArr = np.array(Image.open(ct))
 image = tf.Variable(content_image)
+
 import time
 start = time.time()
 
-epochs = 100
-steps_per_epoch = 100
+epochs = 34200
+steps_per_epoch = 10
+
+save_folder = 'ct_color\\style_results'
 
 step = 0
 for n in range(epochs):
-    print("Train epoch: {}".format(n))
-    for m in tqdm(range(steps_per_epoch),position=0):
+    extractor.vgg.save("ct_color\\style_results\\model0.h5")
+    # print("Train epoch: {}".format(n))
+    for m in range(steps_per_epoch):
         step += 1
         train_step(image)
         #print(".", end='')
-  
 
-end = time.time()
-print("Total time: {:.1f}".format(end-start))
+    out = (((image.numpy()[0])*255).astype('uint8'))
+    out_img = Image.fromarray(out)
+    out_img.save('ct_color\\style_results\\epoch_'+str(n)+".png","PNG")
+    extractor.vgg.save("ct_color\\style_results\\model1.h5")
 
-#%%Save
-resize = tf.image.resize(image,original_size)
-resize = resize.numpy()[0]
-ctArr = np.array(Image.open(ct))
-out = 128*resize
-cur = np.zeros((original_size[0],original_size[1],3))
-cur[:,:,0] = ctArr[:,:,0]
-cur[:,:,1:] = out[:,:,1:]
-
-plt.figure(figsize=[10,20])
-plt.subplot(1,2,1)
-plt.imshow(ctArr)
-plt.subplot(1,2,2)
-plt.imshow(lab2rgb(cur))
+    end = time.time()
+    # print("Total time: {:.1f}".format(end-start))
 
 # %%

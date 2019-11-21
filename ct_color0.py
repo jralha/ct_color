@@ -10,8 +10,8 @@ Image.MAX_IMAGE_PIXELS = 1000000000
 
 #%% Loading Data
 #####################################
-foto = Image.open('ct_color\\caixa6_T2_invertido.png')
-ct = Image.open('ct_color\\Tomografia_Cx6_T2.PNG')
+foto = Image.open('ct_color\\output0\\reg_foto.png')
+ct = Image.open('ct_color\\dados0\\Tomografia_Cx6_T2.PNG')
 
 foto_array = np.asarray(foto)
 ct_array = np.asarray(ct)
@@ -27,7 +27,7 @@ size = (x,y)
 foto_resize = foto.resize(size,Image.ANTIALIAS)
 ct_resize = crop_ct.resize(size,Image.ANTIALIAS)
 
-cropx1, cropx2, cropy1, cropy2 = [0+5, x-5, 510, 560]
+cropx1, cropx2, cropy1, cropy2 = [0, x, 0, y]
 
 recrop_foto = foto_resize.crop((cropx1, cropy1, cropx2, cropy2))
 recrop_ct = ct_resize.crop((cropx1, cropy1, cropx2, cropy2))
@@ -39,6 +39,7 @@ foto_in = np.asarray(recrop_foto).T[:-1].T
 ct_in_flat = ct_in.reshape((ct_in.shape[0]*ct_in.shape[1]),ct_in.shape[2])
 foto_in_flat = foto_in.reshape((foto_in.shape[0]*foto_in.shape[1]),foto_in.shape[2])
 
+#%%
 X_train, X_test, Y_train_rgb, Y_test_rgb = train_test_split(ct_in_flat,foto_in_flat)
 
 Y_train_r = Y_train_rgb.T[0].T
@@ -76,7 +77,7 @@ color_ct[1] = ct_g.reshape(ct_in.T.shape[1],ct_in.T.shape[2])
 color_ct[2] = ct_b.reshape(ct_in.T.shape[1],ct_in.T.shape[2])
 color_ct = color_ct.T.astype(int)
 
-plt.figure(figsize=[10,30])
+plt.figure(figsize=[10,20])
 plt.subplot(1,3,1)
 plt.imshow(foto_in)
 plt.subplot(1,3,2)
