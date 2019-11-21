@@ -172,6 +172,6 @@ for n in range(epochs):
     extractor.vgg.save("ct_color\\style_results\\model1.h5")
 
     end = time.time()
-    # print("Total time: {:.1f}".format(end-start))
+    print("Total time: {:.1f}".format(end-start))
 
 # %%
