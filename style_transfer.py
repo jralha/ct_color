@@ -1,12 +1,11 @@
 #%%
 import os
 import tensorflow as tf
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 from tqdm.auto import tqdm
-from skimage.color import rgb2lab, lab2rgb
 
 #%% Load data and set layers from VGG net
 #######################################################################
@@ -15,17 +14,14 @@ def load_input_image(path):
     img = np.float32(np.array(img))
     img = img[:,:,:3]
     img = img / 255
-    # img = rgb2lab(1.0/255*img)[:,:,:3]
-    # img /= 128
-
     # vggsize=(224,224)
     # img = tf.image.resize(img, vggsize)
     img = img[tf.newaxis, :]
     return img
 
 
-foto = 'ct_color\\output0\\reg_foto.png'
-ct = 'ct_color\\dados0\\Tomografia_Cx6_T2.PNG'
+foto = 'ct_color\\reg_foto.png'
+ct = 'ct_color\\ct.PNG'
 vgg = tf.keras.applications.vgg19.VGG19(include_top=False)
 
 content_image = load_input_image(ct)
@@ -51,7 +47,7 @@ def vgg_layers(layer_names):
     """ Creates a vgg model that returns a list of intermediate output values."""
     # Load our model. Load pretrained VGG, trained on imagenet data
     vgg = tf.keras.applications.VGG19(include_top=False, weights='imagenet')
-    vgg.trainable = False
+    vgg.trainable = True
   
     outputs = [vgg.get_layer(name).output for name in layer_names]
 
@@ -152,26 +148,26 @@ image = tf.Variable(content_image)
 import time
 start = time.time()
 
-epochs = 34200
+epochs = 3
 steps_per_epoch = 10
 
 save_folder = 'ct_color\\style_results'
 
 step = 0
-for n in range(epochs):
-    extractor.vgg.save("ct_color\\style_results\\model0.h5")
-    # print("Train epoch: {}".format(n))
-    for m in range(steps_per_epoch):
+for n in tqdm(range(epochs)):
+    # extractor.vgg.save("ct_color\\style_results\\model0.h5")
+    print("Train epoch: {}".format(n))
+    for m in tqdm(range(steps_per_epoch),position=0):
         step += 1
         train_step(image)
         #print(".", end='')
 
     out = (((image.numpy()[0])*255).astype('uint8'))
     out_img = Image.fromarray(out)
-    out_img.save('ct_color\\style_results\\epoch_'+str(n)+".png","PNG")
-    extractor.vgg.save("ct_color\\style_results\\model1.h5")
+    # out_img.save('ct_color\\style_results\\epoch_'+str(n)+".png","PNG")
+    # extractor.vgg.save("ct_color\\style_results\\model1.h5")
 
-    end = time.time()
-    print("Total time: {:.1f}".format(end-start))
+    # end = time.time()
+    # print("Total time: {:.1f}".format(end-start))
 
 # %%
